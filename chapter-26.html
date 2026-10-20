@@ -1,0 +1,27 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="零基础 Agent Sandbox 中文学习书：原理、工程、论文与实践。"><title>第 25 章：论文导读——启动速度从哪里来 · Agent Sandbox</title><link rel="stylesheet" href="reader.css"><script src="reader.js" defer></script></head><body><a class="skip" href="#content">跳到正文</a><header><button id="menu" aria-label="切换章节目录" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><a class="brand" href="index.html">Agent Sandbox <small>从零开始 · 3.0</small></a><button id="theme" aria-label="切换深色模式">◐ 外观</button></header><div class="layout"><aside id="sidebar"><p class="eyebrow">中文学习书 · 27 章</p><label for="search">搜索全书</label><input id="search" type="search" placeholder="搜索概念、项目或问题" autocomplete="off"><div id="results" role="status" aria-live="polite"></div><nav aria-label="章节目录"><a href="index.html">Agent Sandbox：从零开始</a><a href="chapter-01.html">阅读路线：先理解，再动手</a><a href="chapter-02.html">第 1 章：智能体为什么需要沙箱</a><a href="chapter-03.html">第 2 章：一张图看懂工作过程</a><a href="chapter-04.html">第 3 章：先认识四种容易混淆的东西</a><a href="chapter-05.html">第 4 章：到底要限制什么</a><a href="chapter-06.html">第 5 章：提示注入与沙箱各管哪一部分</a><a href="chapter-07.html">第 6 章：认识几个代表项目</a><a href="chapter-08.html">第 7 章：准备第一个实验</a><a href="chapter-09.html">第 8 章：亲手运行一个受限任务</a><a href="chapter-10.html">第 9 章：验证边界，而不只是看到成功</a><a href="chapter-11.html">第 10 章：沙箱的一生与状态管理</a><a href="chapter-12.html">第 11 章：输入、输出与依赖怎样管理</a><a href="chapter-13.html">第 12 章：日志、失败与成本</a><a href="chapter-14.html">第 13 章：一个可复述的系统设计</a><a href="chapter-15.html">第 14 章：怎样选择方案</a><a href="chapter-16.html">第 15 章：七天学习计划与自测</a><a href="chapter-17.html">第 16 章：重新画地图——智能体沙箱工程是什么</a><a href="chapter-18.html">第 17 章：OpenSandbox——把环境管理与执行能力接起来</a><a href="chapter-19.html">第 18 章：SPACE——环境、操作与连接各有一条生命线</a><a href="chapter-20.html">第 19 章：CubeSandbox——从集群入口走到 microVM</a><a href="chapter-21.html">第 20 章：Anthropic sandbox-runtime——给本地命令加边界</a><a href="chapter-22.html">第 21 章：把同一个任务放进四项工程</a><a href="chapter-23.html">第 22 章：从读仓库到读论文</a><a href="chapter-24.html">第 23 章：扩展工程地图——平台、任务系统与维护状态</a><a href="chapter-25.html">第 24 章：底层工程导读——墙壁、门禁与接线方式</a><a href="chapter-26.html" aria-current="page">第 25 章：论文导读——启动速度从哪里来</a><a href="chapter-27.html">第 26 章：从 Agent 到评测——环境为何影响结果</a><a href="chapter-28.html">第 27 章：第二阶段学习路线与综合练习</a><a href="chapter-29.html">附录 A：答案与排错</a><a href="chapter-30.html">附录 B：入门术语表</a><a href="chapter-31.html">附录 C：资料来源与继续阅读</a><a href="chapter-32.html">附录 D：四项工程的源码阅读索引</a><a href="chapter-33.html">附录 E：扩展资料、核查范围与更正</a></nav><a class="download" href="Agent-Sandbox-3.0.epub" download>↓ 下载 EPUB 3.0</a></aside><main id="content" tabindex="-1"><div class="meta">第 27 / 34 节 · 面向零基础读者</div><article><h1 id="第-25-章论文导读启动速度从哪里来">第 25 章：论文导读——启动速度从哪里来</h1>
+<h2 id="先学三种证据强度">先学三种证据强度</h2>
+<p>书目核对只能确认题目、作者、会议与年份；摘要阅读可以知道研究问题和主要主张；阅读全文与复现实验才能更深入检查方法和结果。本书会明确采用哪一层，不把下载到一个页面等同于复现论文。</p>
+<p>论文中的“安全”和“快”都有前提：攻击者拥有何种能力？实验从哪个事件计时？客体和宿主配置是什么？不看这些条件，就不能用一个数字决定四项工程谁更好。</p>
+<h2 id="firecracker专门化怎样减少开销">Firecracker：专门化怎样减少开销</h2>
+<p>Agache 等人的《Firecracker: Lightweight Virtualization for Serverless Applications》，NSDI 2020，讨论多租户 serverless 场景如何兼顾隔离与低开销。[23] 本版核对了 USENIX 官方书目页与摘要，并结合 Firecracker 当前官方 README 讲解，不声称复现论文或逐项审核其实验。</p>
+<p>零基础读法是先抓一个问题：如果常规虚拟机携带许多任务不需要的设备与功能，能否通过缩小需求来简化 VMM？精简并不意味着没有虚拟机边界，而是围绕明确负载减少不必要的部分。</p>
+<p>把论文带回工程时，问三个问题：平台是否采用相同 VMM？采用了哪些配置与加固？平台的就绪定义是否等同于论文的计时终点？只有第一问相同，还不足以继承全部结论。</p>
+<h2 id="catalyzer跳过重复初始化">Catalyzer：跳过重复初始化</h2>
+<p>Du 等人的《Catalyzer: Sub-millisecond Startup for Serverless Computing with Initialization-less Booting》，ASPLOS 2020，提出通过状态复用减少启动路径上的初始化。[24] 本版取得作者机构公开 PDF，阅读摘要、引言及设计说明，并通过 Crossref 核对 DOI。</p>
+<p>像一间反复使用的教室：每次都从空房布置到电脑开机很慢，可以保存一份已经准备好的状态，再在需要时恢复。论文讨论 checkpoint 恢复、按需恢复状态，以及 sfork；其实现研究与 gVisor 相关。不能因为有“虚拟化沙箱”一词，就把它误写成单纯的 Firecracker 优化。</p>
+<p>“sub-millisecond”是论文在特定实验条件下的结果，其中最佳情形与完整应用请求有区别。本书不把它写成所有快照平台都能达到的承诺，也不把论文机制直接归因于本书四项工程。</p>
+<p>读到这里，你应该能解释：优化客体启动与跳过应用初始化是两个方向。模板缓存、预热、快照恢复和懒加载也不一样，各自把时间和成本移到不同阶段。</p>
+<h2 id="安全论文本版怎样处理待核实条目">安全论文：本版怎样处理待核实条目</h2>
+<p>先前推荐中的《The RESTless House of Containers》被配上 WOOT 2019 和一个无法访问的 Han 页面，本次没有获得足够可靠的出处来确认这组题名、会议、年份与链接。因此本版不把这条错误配对作为已核实论文收入参考文献。[25]</p>
+<p>相应学习主题仍保留：容器管理 API、守护进程 socket、控制面身份与网络入口也是攻击面。它们可以通过前面的 Docker 安全文档和实际平台配置继续学习。待找到可靠原始书目后，再补论文解析；不以猜测替换一个看似正确的 DOI。</p>
+<h2 id="用六问读任何系统论文">用六问读任何系统论文</h2>
+<ol type="1">
+<li>它要解决的是隔离、启动、密度，还是应用完成时间？</li>
+<li>攻击者和受保护对象分别是什么？</li>
+<li>核心机制依赖什么内核或硬件条件？</li>
+<li>对照组与负载是否适合你的场景？</li>
+<li>指标从哪里开始、在哪里结束？</li>
+<li>论文年代与当前实现之间有什么变化？</li>
+</ol>
+<p>练习：把“从 API 返回 ID 到可运行 Python”和“从请求开始到取得校验后的报告”分别画出来。解释为什么两个系统即使都声称启动 100ms，也可能给用户完全不同的等待时间。</p>
+</article><footer><a href="chapter-25.html">← 上一章</a><a href="chapter-27.html">下一章 →</a></footer><p class="note">本书包含示例与资料导读；验证范围和来源见附录。</p></main></div></body></html>

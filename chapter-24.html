@@ -1,0 +1,58 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="零基础 Agent Sandbox 中文学习书：原理、工程、论文与实践。"><title>第 23 章：扩展工程地图——平台、任务系统与维护状态 · Agent Sandbox</title><link rel="stylesheet" href="reader.css"><script src="reader.js" defer></script></head><body><a class="skip" href="#content">跳到正文</a><header><button id="menu" aria-label="切换章节目录" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><a class="brand" href="index.html">Agent Sandbox <small>从零开始 · 3.0</small></a><button id="theme" aria-label="切换深色模式">◐ 外观</button></header><div class="layout"><aside id="sidebar"><p class="eyebrow">中文学习书 · 27 章</p><label for="search">搜索全书</label><input id="search" type="search" placeholder="搜索概念、项目或问题" autocomplete="off"><div id="results" role="status" aria-live="polite"></div><nav aria-label="章节目录"><a href="index.html">Agent Sandbox：从零开始</a><a href="chapter-01.html">阅读路线：先理解，再动手</a><a href="chapter-02.html">第 1 章：智能体为什么需要沙箱</a><a href="chapter-03.html">第 2 章：一张图看懂工作过程</a><a href="chapter-04.html">第 3 章：先认识四种容易混淆的东西</a><a href="chapter-05.html">第 4 章：到底要限制什么</a><a href="chapter-06.html">第 5 章：提示注入与沙箱各管哪一部分</a><a href="chapter-07.html">第 6 章：认识几个代表项目</a><a href="chapter-08.html">第 7 章：准备第一个实验</a><a href="chapter-09.html">第 8 章：亲手运行一个受限任务</a><a href="chapter-10.html">第 9 章：验证边界，而不只是看到成功</a><a href="chapter-11.html">第 10 章：沙箱的一生与状态管理</a><a href="chapter-12.html">第 11 章：输入、输出与依赖怎样管理</a><a href="chapter-13.html">第 12 章：日志、失败与成本</a><a href="chapter-14.html">第 13 章：一个可复述的系统设计</a><a href="chapter-15.html">第 14 章：怎样选择方案</a><a href="chapter-16.html">第 15 章：七天学习计划与自测</a><a href="chapter-17.html">第 16 章：重新画地图——智能体沙箱工程是什么</a><a href="chapter-18.html">第 17 章：OpenSandbox——把环境管理与执行能力接起来</a><a href="chapter-19.html">第 18 章：SPACE——环境、操作与连接各有一条生命线</a><a href="chapter-20.html">第 19 章：CubeSandbox——从集群入口走到 microVM</a><a href="chapter-21.html">第 20 章：Anthropic sandbox-runtime——给本地命令加边界</a><a href="chapter-22.html">第 21 章：把同一个任务放进四项工程</a><a href="chapter-23.html">第 22 章：从读仓库到读论文</a><a href="chapter-24.html" aria-current="page">第 23 章：扩展工程地图——平台、任务系统与维护状态</a><a href="chapter-25.html">第 24 章：底层工程导读——墙壁、门禁与接线方式</a><a href="chapter-26.html">第 25 章：论文导读——启动速度从哪里来</a><a href="chapter-27.html">第 26 章：从 Agent 到评测——环境为何影响结果</a><a href="chapter-28.html">第 27 章：第二阶段学习路线与综合练习</a><a href="chapter-29.html">附录 A：答案与排错</a><a href="chapter-30.html">附录 B：入门术语表</a><a href="chapter-31.html">附录 C：资料来源与继续阅读</a><a href="chapter-32.html">附录 D：四项工程的源码阅读索引</a><a href="chapter-33.html">附录 E：扩展资料、核查范围与更正</a></nav><a class="download" href="Agent-Sandbox-3.0.epub" download>↓ 下载 EPUB 3.0</a></aside><main id="content" tabindex="-1"><div class="meta">第 25 / 34 节 · 面向零基础读者</div><article><h1 id="第-23-章扩展工程地图平台任务系统与维护状态">第 23 章：扩展工程地图——平台、任务系统与维护状态</h1>
+<h2 id="不必把所有项目当成直接竞争者">不必把所有项目当成直接竞争者</h2>
+<p>前面的四项工程帮助我们理解沙箱平台与本地限制器。接下来补充 Daytona、E2B、Modal Sandboxes 和 Judge0，分别观察工作环境接口、SDK 契约、托管资源，以及提交式代码执行。它们可以相互借鉴，但不能只凭都能运行 Python，就认定功能与责任完全一样。[15]～[18]</p>
+<p>学习时继续沿用“收入总额 250”任务。真正要比较的是：输入怎样进入、执行发生在哪里、结果怎样验证、状态怎样保存、任务结束后谁负责清理。登录方式、安装命令和最新套餐请查当时文档，本书不固定易变的费用信息。</p>
+<h2 id="daytona先看仓库状态再读设计">Daytona：先看仓库状态，再读设计</h2>
+<p>本次获取的 daytonaio/daytona README 开头明确声明：自 2026 年 6 月起，核心开发转移到私有代码库，该公开仓库不再接收更新、修复或发布。[15] 因此本书把它当作历史公开实现与产品接口的学习材料，不把它描述成仍持续维护的开源核心。</p>
+<p>这纠正了前面讨论中的笼统推荐。公开仓库仍能帮助理解工作空间、文件操作、命令执行、快照和访问入口如何被组织成产品，但旧源码与当前托管产品可能已经不同。接口文档可以继续变化，公开仓库却停止更新，二者不能互相代替。</p>
+<p>给小白的阅读任务：找出创建环境、文件读写和停止环境的接口；然后确认你读的是历史源码还是当前产品文档。最后在笔记中写上维护状态、版本、许可证位置与查阅日期。能运行一次并不代表今后还能获得相同维护支持。</p>
+<h2 id="e2b把-sdk-当作一份执行契约">E2B：把 SDK 当作一份执行契约</h2>
+<p>E2B 的公开 README 展示了普通命令执行、Code Interpreter 和 Desktop 等不同入口，并把自托管说明指向其他运行时资料。[16] 因此“读过 E2B 仓库首页”不能等同于审阅了完整基础设施。</p>
+<p>普通命令接口提供一个进程的 stdout、stderr 与退出结果；代码解释器还可能维护代码上下文、返回图表或富结果；桌面接口处理屏幕、鼠标与键盘。选择哪一层接口，决定控制器应该检查什么。计算 CSV 时不需要桌面能力，就没有必要为了方便开放整套交互桌面。</p>
+<p>SDK 还是理解兼容层的参照：把实际使用的方法、版本、超时、异常和销毁方式列出来，再去检查 SPACE 或 CubeSandbox 对这些行为的覆盖。不要仅以成功 import 或一次 echo 认定迁移完成。</p>
+<h2 id="modal-sandboxes学习托管服务如何表达资源">Modal Sandboxes：学习托管服务如何表达资源</h2>
+<p>Modal 官方指南把 Sandbox 描述为运行不可信用户或 Agent 代码的容器环境，并给出创建、exec、读取输出和 terminate 的流程。[17] 还可以配置镜像与卷等资源。这里参考的是托管服务接口文档，本书没有把它当作可审阅的完整服务端源码。</p>
+<p>它适合研究两件事：应用如何临时创建环境，以及环境寿命如何与其中的单次命令分开。一个环境可以运行多条命令；其中一条命令超时，不应被想当然地理解成所有关联资源都消失。</p>
+<p>练习：用文字列出临时文件、持久卷、运行实例和应用配置四类对象，逐个查它们的生命周期。假设报告已经写进持久卷，terminate 实例以后报告是否保留？答案要从该存储对象的契约中找，不能仅从 terminate 这个动词推导。</p>
+<h2 id="judge0回到提交执行结果的基本功">Judge0：回到“提交—执行—结果”的基本功</h2>
+<p>Judge0 是在线代码执行系统，README 介绍多语言编译运行、标准输入、执行结果以及时间与内存限制等能力。[18] 它很适合帮助你理解：智能体出现以前，服务端运行陌生代码就已经需要调度、预算和错误处理。</p>
+<p>与长期工作空间相比，一次代码提交通常更容易表达为“源代码、语言、输入、限制 → 编译或执行 → 结果”。这类接口适合练习和判题。多轮修改仓库、保持后台 Web 服务或保存终端状态，则需要再检查它是否提供相应语义，不能直接照搬。</p>
+<p>把销售分析映射进去：提供固定代码与演示数据，拿到执行结果后校验 250。要区分编译错误、运行错误、超时、输出不符合预期。HTTP 请求成功仅表示接口调用得到响应，不等于代码完成了正确任务。</p>
+<h2 id="一页对照笔记">一页对照笔记</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>参考对象</th>
+<th>最值得借鉴的方面</th>
+<th>本次证据范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Daytona</td>
+<td>工作空间与产品接口的组织、维护状态判断</td>
+<td>公开 README；未审阅历史实现全链路</td>
+</tr>
+<tr>
+<td>E2B</td>
+<td>SDK、执行接口、兼容行为的参照</td>
+<td>公开 README，加前文官方入门文档</td>
+</tr>
+<tr>
+<td>Modal</td>
+<td>托管资源的创建、执行、存储与终止</td>
+<td>官方 Sandbox 指南</td>
+</tr>
+<tr>
+<td>Judge0</td>
+<td>提交式代码任务与执行结果模型</td>
+<td>公开 README</td>
+</tr>
+</tbody>
+</table>
+</article><footer><a href="chapter-23.html">← 上一章</a><a href="chapter-25.html">下一章 →</a></footer><p class="note">本书包含示例与资料导读；验证范围和来源见附录。</p></main></div></body></html>

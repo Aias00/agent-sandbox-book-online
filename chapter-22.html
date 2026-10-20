@@ -1,0 +1,68 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="零基础 Agent Sandbox 中文学习书：原理、工程、论文与实践。"><title>第 21 章：把同一个任务放进四项工程 · Agent Sandbox</title><link rel="stylesheet" href="reader.css"><script src="reader.js" defer></script></head><body><a class="skip" href="#content">跳到正文</a><header><button id="menu" aria-label="切换章节目录" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><a class="brand" href="index.html">Agent Sandbox <small>从零开始 · 3.0</small></a><button id="theme" aria-label="切换深色模式">◐ 外观</button></header><div class="layout"><aside id="sidebar"><p class="eyebrow">中文学习书 · 27 章</p><label for="search">搜索全书</label><input id="search" type="search" placeholder="搜索概念、项目或问题" autocomplete="off"><div id="results" role="status" aria-live="polite"></div><nav aria-label="章节目录"><a href="index.html">Agent Sandbox：从零开始</a><a href="chapter-01.html">阅读路线：先理解，再动手</a><a href="chapter-02.html">第 1 章：智能体为什么需要沙箱</a><a href="chapter-03.html">第 2 章：一张图看懂工作过程</a><a href="chapter-04.html">第 3 章：先认识四种容易混淆的东西</a><a href="chapter-05.html">第 4 章：到底要限制什么</a><a href="chapter-06.html">第 5 章：提示注入与沙箱各管哪一部分</a><a href="chapter-07.html">第 6 章：认识几个代表项目</a><a href="chapter-08.html">第 7 章：准备第一个实验</a><a href="chapter-09.html">第 8 章：亲手运行一个受限任务</a><a href="chapter-10.html">第 9 章：验证边界，而不只是看到成功</a><a href="chapter-11.html">第 10 章：沙箱的一生与状态管理</a><a href="chapter-12.html">第 11 章：输入、输出与依赖怎样管理</a><a href="chapter-13.html">第 12 章：日志、失败与成本</a><a href="chapter-14.html">第 13 章：一个可复述的系统设计</a><a href="chapter-15.html">第 14 章：怎样选择方案</a><a href="chapter-16.html">第 15 章：七天学习计划与自测</a><a href="chapter-17.html">第 16 章：重新画地图——智能体沙箱工程是什么</a><a href="chapter-18.html">第 17 章：OpenSandbox——把环境管理与执行能力接起来</a><a href="chapter-19.html">第 18 章：SPACE——环境、操作与连接各有一条生命线</a><a href="chapter-20.html">第 19 章：CubeSandbox——从集群入口走到 microVM</a><a href="chapter-21.html">第 20 章：Anthropic sandbox-runtime——给本地命令加边界</a><a href="chapter-22.html" aria-current="page">第 21 章：把同一个任务放进四项工程</a><a href="chapter-23.html">第 22 章：从读仓库到读论文</a><a href="chapter-24.html">第 23 章：扩展工程地图——平台、任务系统与维护状态</a><a href="chapter-25.html">第 24 章：底层工程导读——墙壁、门禁与接线方式</a><a href="chapter-26.html">第 25 章：论文导读——启动速度从哪里来</a><a href="chapter-27.html">第 26 章：从 Agent 到评测——环境为何影响结果</a><a href="chapter-28.html">第 27 章：第二阶段学习路线与综合练习</a><a href="chapter-29.html">附录 A：答案与排错</a><a href="chapter-30.html">附录 B：入门术语表</a><a href="chapter-31.html">附录 C：资料来源与继续阅读</a><a href="chapter-32.html">附录 D：四项工程的源码阅读索引</a><a href="chapter-33.html">附录 E：扩展资料、核查范围与更正</a></nav><a class="download" href="Agent-Sandbox-3.0.epub" download>↓ 下载 EPUB 3.0</a></aside><main id="content" tabindex="-1"><div class="meta">第 23 / 34 节 · 面向零基础读者</div><article><h1 id="第-21-章把同一个任务放进四项工程">第 21 章：把同一个任务放进四项工程</h1>
+<h2 id="用销售表格做共同题目">用销售表格做共同题目</h2>
+<p>继续使用第 8 章的三笔虚构收入，目标始终是输出总额 250。比较时先固定任务，再观察工程如何解决环境、执行、网络、持久化和清理。下面是概念迁移练习，不是未经运行就宣称可直接使用的 SDK 示例。</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>环节</th>
+<th>OpenSandbox</th>
+<th>SPACE</th>
+<th>CubeSandbox</th>
+<th>sandbox-runtime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>准备环境</td>
+<td>选择后端与镜像或模板</td>
+<td>选择模板并创建 microVM</td>
+<td>选择模板，经控制面安排实例</td>
+<td>使用现有主机与工作目录</td>
+</tr>
+<tr>
+<td>提交计算</td>
+<td>SDK 经 execd 执行</td>
+<td>建命令会话，attach 执行</td>
+<td>使用该版本兼容接口与环境执行能力</td>
+<td>srt 包装固定本地命令</td>
+</tr>
+<tr>
+<td>限制出网</td>
+<td>核对 egress 模式与后端兼容性</td>
+<td>核对平台与环境网络政策</td>
+<td>核对网络策略及 CubeEgress 部署</td>
+<td>配置允许域名与系统限制</td>
+</tr>
+<tr>
+<td>取回报告</td>
+<td>文件接口导出并校验</td>
+<td>按文件或执行接口取回并校验</td>
+<td>按兼容接口或存储路径取回并校验</td>
+<td>从获准写入的工作目录读取并校验</td>
+</tr>
+<tr>
+<td>完成清理</td>
+<td>显式销毁并确认</td>
+<td>查询删除操作完成</td>
+<td>删除并确认节点与平台状态</td>
+<td>处理进程退出、清理代理与临时文件</td>
+</tr>
+</tbody>
+</table>
+<p>表中故意没有把所有行改写成相同方法名：接口风格的差异本身就是学习内容。真实接入时，应核对当前版本的创建、执行、文件、超时、销毁与错误处理契约。</p>
+<h2 id="e2b-兼容要拆成清单">E2B 兼容要拆成清单</h2>
+<p>“支持 E2B SDK”可以降低应用改动，但不代表每个 SDK 版本、模板格式、网络选项、文件接口、错误码和生命周期动作都完全一致。SPACE 的 ECW 文档还专门定义测试过的兼容范围：本次快照基线为 Python e2b 2.21.1 与 e2b-code-interpreter 2.6.2，不能据此宣称 JavaScript SDK 或所有版本已经验证；CubeSandbox 也有自己的扩展与部署规则。</p>
+<p>迁移前写一份最小契约：能否创建和查询？执行输出如何返回？文件大小限制是什么？断流能否恢复？pause 保存了什么？delete 多久可确认？用你实际要用的 SDK 版本运行这些检查。</p>
+<h2 id="先不要做性能排行榜">先不要做性能排行榜</h2>
+<p>启动耗时可能从收到 API 请求开始，也可能只测 VMM 创建；可能结束于返回 ID，也可能结束于客体里第一条命令完成。预热镜像、预启动 VM、快照恢复和真正冷启动都是不同条件。</p>
+<p>建议测量“从应用发起请求，到得到经过校验的 250 报告”的完整耗时，并另外记录创建、就绪、执行、导出与清理。统计中位数和尾部延迟，同时记录错误率、并发、硬件和模板。只有同条件的测量才支持相应比较。</p>
+<h2 id="第一次选型可以很朴素">第一次选型可以很朴素</h2>
+<p>想学本地进程权限，优先读 sandbox-runtime；想从 Docker 走向服务 API，先研究 OpenSandbox；想深入 Firecracker 平台状态机，读 SPACE；想研究 RustVMM/KVM、网络和存储组合，读 CubeSandbox。这是阅读顺序建议，并不表示其他项目不能完成同类任务。</p>
+</article><footer><a href="chapter-21.html">← 上一章</a><a href="chapter-23.html">下一章 →</a></footer><p class="note">本书包含示例与资料导读；验证范围和来源见附录。</p></main></div></body></html>

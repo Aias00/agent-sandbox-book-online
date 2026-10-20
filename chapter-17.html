@@ -1,0 +1,54 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="零基础 Agent Sandbox 中文学习书：原理、工程、论文与实践。"><title>第 16 章：重新画地图——智能体沙箱工程是什么 · Agent Sandbox</title><link rel="stylesheet" href="reader.css"><script src="reader.js" defer></script></head><body><a class="skip" href="#content">跳到正文</a><header><button id="menu" aria-label="切换章节目录" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><a class="brand" href="index.html">Agent Sandbox <small>从零开始 · 3.0</small></a><button id="theme" aria-label="切换深色模式">◐ 外观</button></header><div class="layout"><aside id="sidebar"><p class="eyebrow">中文学习书 · 27 章</p><label for="search">搜索全书</label><input id="search" type="search" placeholder="搜索概念、项目或问题" autocomplete="off"><div id="results" role="status" aria-live="polite"></div><nav aria-label="章节目录"><a href="index.html">Agent Sandbox：从零开始</a><a href="chapter-01.html">阅读路线：先理解，再动手</a><a href="chapter-02.html">第 1 章：智能体为什么需要沙箱</a><a href="chapter-03.html">第 2 章：一张图看懂工作过程</a><a href="chapter-04.html">第 3 章：先认识四种容易混淆的东西</a><a href="chapter-05.html">第 4 章：到底要限制什么</a><a href="chapter-06.html">第 5 章：提示注入与沙箱各管哪一部分</a><a href="chapter-07.html">第 6 章：认识几个代表项目</a><a href="chapter-08.html">第 7 章：准备第一个实验</a><a href="chapter-09.html">第 8 章：亲手运行一个受限任务</a><a href="chapter-10.html">第 9 章：验证边界，而不只是看到成功</a><a href="chapter-11.html">第 10 章：沙箱的一生与状态管理</a><a href="chapter-12.html">第 11 章：输入、输出与依赖怎样管理</a><a href="chapter-13.html">第 12 章：日志、失败与成本</a><a href="chapter-14.html">第 13 章：一个可复述的系统设计</a><a href="chapter-15.html">第 14 章：怎样选择方案</a><a href="chapter-16.html">第 15 章：七天学习计划与自测</a><a href="chapter-17.html" aria-current="page">第 16 章：重新画地图——智能体沙箱工程是什么</a><a href="chapter-18.html">第 17 章：OpenSandbox——把环境管理与执行能力接起来</a><a href="chapter-19.html">第 18 章：SPACE——环境、操作与连接各有一条生命线</a><a href="chapter-20.html">第 19 章：CubeSandbox——从集群入口走到 microVM</a><a href="chapter-21.html">第 20 章：Anthropic sandbox-runtime——给本地命令加边界</a><a href="chapter-22.html">第 21 章：把同一个任务放进四项工程</a><a href="chapter-23.html">第 22 章：从读仓库到读论文</a><a href="chapter-24.html">第 23 章：扩展工程地图——平台、任务系统与维护状态</a><a href="chapter-25.html">第 24 章：底层工程导读——墙壁、门禁与接线方式</a><a href="chapter-26.html">第 25 章：论文导读——启动速度从哪里来</a><a href="chapter-27.html">第 26 章：从 Agent 到评测——环境为何影响结果</a><a href="chapter-28.html">第 27 章：第二阶段学习路线与综合练习</a><a href="chapter-29.html">附录 A：答案与排错</a><a href="chapter-30.html">附录 B：入门术语表</a><a href="chapter-31.html">附录 C：资料来源与继续阅读</a><a href="chapter-32.html">附录 D：四项工程的源码阅读索引</a><a href="chapter-33.html">附录 E：扩展资料、核查范围与更正</a></nav><a class="download" href="Agent-Sandbox-3.0.epub" download>↓ 下载 EPUB 3.0</a></aside><main id="content" tabindex="-1"><div class="meta">第 18 / 34 节 · 面向零基础读者</div><article><h1 id="第-16-章重新画地图智能体沙箱工程是什么">第 16 章：重新画地图——智能体沙箱工程是什么</h1>
+<h2 id="先把问题问完整">先把问题问完整</h2>
+<p>你在 GitHub 搜索 agent sandbox，可能看到 Kubernetes 控制器、远程执行平台、本地命令限制器、虚拟机监视器，以及某个 SDK。它们都与沙箱有关，但提供的能力不同。本书前半部分学习底层原理，这一部分把原理放回完整工程，重点研究 OpenSandbox、SPACE、CubeSandbox 与 Anthropic sandbox-runtime。[11]～[14]</p>
+<p>想象你要开一家自助学习室：房间墙壁对应隔离机制，前台负责登记和分房，房间里的终端负责接收作业，门禁负责控制进出，保洁负责结束后的清理。一个完整沙箱服务往往需要把这些能力接起来。本地命令限制器则可能只给你现有的工作室加门禁，不负责开设一整家连锁店。</p>
+<h2 id="用五层理解而不是背产品名单">用五层理解，而不是背产品名单</h2>
+<p>第一层是应用：智能体决定分析表格、修改代码或操作浏览器。第二层是接入：SDK、HTTP API 或命令行把请求送进来。第三层是控制：创建环境、记录状态、调度节点、决定存活时间。第四层是执行：启动进程、传文件、读取终端输出。第五层是隔离与资源：容器、操作系统策略、microVM、网络和存储限制。</p>
+<p>实际项目会跨越几层，但你总可以问：这个组件是在“决定在哪里运行”，还是“真正执行并限制运行”？例如 OpenSandbox 的生命周期服务与 execd 分别偏向控制和执行；SPACE 的控制 API 与命令输出连接也分开；CubeSandbox 的 CubeMaster 与 Cubelet 分担集群和节点责任；sandbox-runtime 主要围绕进程限制与代理展开。</p>
+<h2 id="四项工程的第一眼对照">四项工程的第一眼对照</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>项目</th>
+<th>主要提供什么</th>
+<th>隔离路线要怎样理解</th>
+<th>初学者先读什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OpenSandbox</td>
+<td>统一生命周期与执行接口、多种运行环境集成</td>
+<td>后端与配置决定实际机制；不能看到项目名就认定为 microVM</td>
+<td>README 的本地 Docker 示例、execd 与 server 文档</td>
+</tr>
+<tr>
+<td>SPACE</td>
+<td>基于 Firecracker 的远程沙箱平台</td>
+<td>microVM 加上控制、存储、网络和命令会话体系</td>
+<td>README、architecture、first-sandbox</td>
+</tr>
+<tr>
+<td>CubeSandbox</td>
+<td>面向 Agent 的 microVM 沙箱服务与集群组件</td>
+<td>RustVMM/KVM 路线，并配套网络、存储和生命周期组件</td>
+<td>中文 README、架构、快速开始</td>
+</tr>
+<tr>
+<td>sandbox-runtime</td>
+<td>包装本地命令的 CLI 和 TypeScript 库</td>
+<td>按操作系统使用不同机制限制进程树</td>
+<td>README 的 How It Works、配置与已知限制</td>
+</tr>
+</tbody>
+</table>
+<p>这张表描述本次读取的源码快照，不是安全强度排名。项目文档中的速度和开销数字属于作者报告；没有统一硬件、模板、并发、缓存和计时边界，不能直接比较大小。</p>
+<h2 id="本部分读到什么深度">本部分读到什么深度</h2>
+<p>本次实际读取了四个仓库的 README、选定的架构与使用文档，并查看了代表性实现入口。没有对整个代码库逐行审计，也没有部署四套平台。因此后文会区分“文档描述”“在具体代码里能确认的行为”和“还需要运行验证的条件”。这比把 README 的承诺全部改写成已验证事实更便于学习。</p>
+</article><footer><a href="chapter-16.html">← 上一章</a><a href="chapter-18.html">下一章 →</a></footer><p class="note">本书包含示例与资料导读；验证范围和来源见附录。</p></main></div></body></html>

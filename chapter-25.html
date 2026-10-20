@@ -1,0 +1,62 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="零基础 Agent Sandbox 中文学习书：原理、工程、论文与实践。"><title>第 24 章：底层工程导读——墙壁、门禁与接线方式 · Agent Sandbox</title><link rel="stylesheet" href="reader.css"><script src="reader.js" defer></script></head><body><a class="skip" href="#content">跳到正文</a><header><button id="menu" aria-label="切换章节目录" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><a class="brand" href="index.html">Agent Sandbox <small>从零开始 · 3.0</small></a><button id="theme" aria-label="切换深色模式">◐ 外观</button></header><div class="layout"><aside id="sidebar"><p class="eyebrow">中文学习书 · 27 章</p><label for="search">搜索全书</label><input id="search" type="search" placeholder="搜索概念、项目或问题" autocomplete="off"><div id="results" role="status" aria-live="polite"></div><nav aria-label="章节目录"><a href="index.html">Agent Sandbox：从零开始</a><a href="chapter-01.html">阅读路线：先理解，再动手</a><a href="chapter-02.html">第 1 章：智能体为什么需要沙箱</a><a href="chapter-03.html">第 2 章：一张图看懂工作过程</a><a href="chapter-04.html">第 3 章：先认识四种容易混淆的东西</a><a href="chapter-05.html">第 4 章：到底要限制什么</a><a href="chapter-06.html">第 5 章：提示注入与沙箱各管哪一部分</a><a href="chapter-07.html">第 6 章：认识几个代表项目</a><a href="chapter-08.html">第 7 章：准备第一个实验</a><a href="chapter-09.html">第 8 章：亲手运行一个受限任务</a><a href="chapter-10.html">第 9 章：验证边界，而不只是看到成功</a><a href="chapter-11.html">第 10 章：沙箱的一生与状态管理</a><a href="chapter-12.html">第 11 章：输入、输出与依赖怎样管理</a><a href="chapter-13.html">第 12 章：日志、失败与成本</a><a href="chapter-14.html">第 13 章：一个可复述的系统设计</a><a href="chapter-15.html">第 14 章：怎样选择方案</a><a href="chapter-16.html">第 15 章：七天学习计划与自测</a><a href="chapter-17.html">第 16 章：重新画地图——智能体沙箱工程是什么</a><a href="chapter-18.html">第 17 章：OpenSandbox——把环境管理与执行能力接起来</a><a href="chapter-19.html">第 18 章：SPACE——环境、操作与连接各有一条生命线</a><a href="chapter-20.html">第 19 章：CubeSandbox——从集群入口走到 microVM</a><a href="chapter-21.html">第 20 章：Anthropic sandbox-runtime——给本地命令加边界</a><a href="chapter-22.html">第 21 章：把同一个任务放进四项工程</a><a href="chapter-23.html">第 22 章：从读仓库到读论文</a><a href="chapter-24.html">第 23 章：扩展工程地图——平台、任务系统与维护状态</a><a href="chapter-25.html" aria-current="page">第 24 章：底层工程导读——墙壁、门禁与接线方式</a><a href="chapter-26.html">第 25 章：论文导读——启动速度从哪里来</a><a href="chapter-27.html">第 26 章：从 Agent 到评测——环境为何影响结果</a><a href="chapter-28.html">第 27 章：第二阶段学习路线与综合练习</a><a href="chapter-29.html">附录 A：答案与排错</a><a href="chapter-30.html">附录 B：入门术语表</a><a href="chapter-31.html">附录 C：资料来源与继续阅读</a><a href="chapter-32.html">附录 D：四项工程的源码阅读索引</a><a href="chapter-33.html">附录 E：扩展资料、核查范围与更正</a></nav><a class="download" href="Agent-Sandbox-3.0.epub" download>↓ 下载 EPUB 3.0</a></aside><main id="content" tabindex="-1"><div class="meta">第 26 / 34 节 · 面向零基础读者</div><article><h1 id="第-24-章底层工程导读墙壁门禁与接线方式">第 24 章：底层工程导读——墙壁、门禁与接线方式</h1>
+<h2 id="bubblewrap工具不会自动替你写安全策略">bubblewrap：工具不会自动替你写安全策略</h2>
+<p>bubblewrap 的 README 特别强调：它是构造沙箱的工具，不是一套已经定义好策略的完整沙箱；保护程度取决于调用者传入的参数。[19] 这是理解整个领域的一句话。</p>
+<p>它可以建立新的挂载视图，选择哪些目录可见、哪些只读；也可以使用进程、用户、网络等命名空间，并接入 seccomp。外层框架需要把“只读输入、只写输出、不能联网”的意图转换成相应配置。</p>
+<p>因此读到 sandbox-runtime 使用 bubblewrap 时，下一步应看它怎样构造参数，而不是在脑中直接写下“已安全”。给程序挂载过多目录、暴露不合适的 socket，仍会扩大能力。本书不让你照抄一条通用 bwrap 命令去执行陌生代码；先从官方示例认识每个可见路径的用途。</p>
+<h2 id="nsjail把进程限制组合成可读配置">nsjail：把进程限制组合成可读配置</h2>
+<p>nsjail 是 Linux 进程隔离工具，文档介绍 namespaces、cgroups、资源限制与 seccomp 策略，并支持配置文件。[20] 相比托管平台，你会更直接地看到权限政策由哪些字段组成。</p>
+<p>可以从三个问题读配置：进程看得见什么文件？使用什么身份与网络空间？最多运行多久、用多少资源？特别区分 wall time 与 CPU time：等待外部响应会消耗实际时间，但未必持续消耗 CPU。</p>
+<p>它的运行模式和平台前提也影响行为。不要把某个官方演示中的高权限 Docker 启动方式直接移植为生产建议；示例可能是为了演示嵌套机制，实际部署需要重新明确宿主机和容器的边界。</p>
+<h2 id="kata-containers让容器接口接到虚拟机">Kata Containers：让容器接口接到虚拟机</h2>
+<p>Kata 的 README 把它定位为以轻量虚拟机提供工作负载隔离，并与容器使用方式衔接的项目。[21] 组件包括容器管理侧的 runtime、客体中的 agent，以及可配置的 hypervisor 等。</p>
+<p>可以把它理解成接线：上层仍提出容器工作负载，运行时把它安排进虚拟机，客体 agent 再建立和管理执行环境。Kubernetes 的 RuntimeClass 只是选择入口，真正的隔离取决于节点安装、配置与实际创建的环境。</p>
+<p>不要推导成“每个普通进程都有一台独立 VM”。隔离单位、Pod 内共享关系和宿主资源需要查具体架构。官方提供主机能力检查入口，说明硬件虚拟化条件也是部署契约的一部分。</p>
+<h2 id="firecrackervmm-之外还需要平台">Firecracker：VMM 之外还需要平台</h2>
+<p>Firecracker 仓库 README 解释 KVM、精简设备模型与 microVM，还介绍了面向生产的 jailer 和宿主机配置资料。[22] 它提供虚拟机监视器及管理接口，但并不自动等于一套完整的 Agent 服务。</p>
+<p>SPACE 等工程还要解决模板、网络、节点选择、命令输出、身份与清理。读源码地图时，应把“平台用了 Firecracker”和“平台所有问题都由 Firecracker 保证”区分开。README 也明确提醒整体安全依赖正确配置的 Linux 宿主机。</p>
+<h2 id="gvisor减少直接接触宿主内核的范围">gVisor：减少直接接触宿主内核的范围</h2>
+<p>结合前文已核对的 gVisor 官方架构文档，重点理解应用内核、系统调用处理和兼容性。[5] 它不是完整硬件虚拟机，也不能只当作一份 seccomp 调用过滤表。</p>
+<p>同一份分析程序可能在普通容器、gVisor 与 microVM 中运行，但文件操作密集、网络密集、特殊系统调用的任务会呈现不同兼容性与开销。先检查真实依赖，再做性能判断。</p>
+<h2 id="把五者放回地图">把五者放回地图</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>对象</th>
+<th>主要学习问题</th>
+<th>不应直接推导的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bubblewrap</td>
+<td>如何构造进程可见的资源视图</td>
+<td>工具名本身等于完整安全政策</td>
+</tr>
+<tr>
+<td>nsjail</td>
+<td>如何组合执行限制与配置</td>
+<td>一份示例适合所有部署</td>
+</tr>
+<tr>
+<td>Kata</td>
+<td>容器生态如何接入 VM 边界</td>
+<td>RuntimeClass 名字证明实际生效</td>
+</tr>
+<tr>
+<td>Firecracker</td>
+<td>精简 VMM 如何创建 microVM</td>
+<td>自带完整 Agent 平台</td>
+</tr>
+<tr>
+<td>gVisor</td>
+<td>用户态应用内核怎样承接系统接口</td>
+<td>所有 Linux 行为与性能完全不变</td>
+</tr>
+</tbody>
+</table>
+</article><footer><a href="chapter-24.html">← 上一章</a><a href="chapter-26.html">下一章 →</a></footer><p class="note">本书包含示例与资料导读；验证范围和来源见附录。</p></main></div></body></html>

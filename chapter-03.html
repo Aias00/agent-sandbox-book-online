@@ -1,0 +1,22 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="零基础 Agent Sandbox 中文学习书：原理、工程、论文与实践。"><title>第 2 章：一张图看懂工作过程 · Agent Sandbox</title><link rel="stylesheet" href="reader.css"><script src="reader.js" defer></script></head><body><a class="skip" href="#content">跳到正文</a><header><button id="menu" aria-label="切换章节目录" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><a class="brand" href="index.html">Agent Sandbox <small>从零开始 · 3.0</small></a><button id="theme" aria-label="切换深色模式">◐ 外观</button></header><div class="layout"><aside id="sidebar"><p class="eyebrow">中文学习书 · 27 章</p><label for="search">搜索全书</label><input id="search" type="search" placeholder="搜索概念、项目或问题" autocomplete="off"><div id="results" role="status" aria-live="polite"></div><nav aria-label="章节目录"><a href="index.html">Agent Sandbox：从零开始</a><a href="chapter-01.html">阅读路线：先理解，再动手</a><a href="chapter-02.html">第 1 章：智能体为什么需要沙箱</a><a href="chapter-03.html" aria-current="page">第 2 章：一张图看懂工作过程</a><a href="chapter-04.html">第 3 章：先认识四种容易混淆的东西</a><a href="chapter-05.html">第 4 章：到底要限制什么</a><a href="chapter-06.html">第 5 章：提示注入与沙箱各管哪一部分</a><a href="chapter-07.html">第 6 章：认识几个代表项目</a><a href="chapter-08.html">第 7 章：准备第一个实验</a><a href="chapter-09.html">第 8 章：亲手运行一个受限任务</a><a href="chapter-10.html">第 9 章：验证边界，而不只是看到成功</a><a href="chapter-11.html">第 10 章：沙箱的一生与状态管理</a><a href="chapter-12.html">第 11 章：输入、输出与依赖怎样管理</a><a href="chapter-13.html">第 12 章：日志、失败与成本</a><a href="chapter-14.html">第 13 章：一个可复述的系统设计</a><a href="chapter-15.html">第 14 章：怎样选择方案</a><a href="chapter-16.html">第 15 章：七天学习计划与自测</a><a href="chapter-17.html">第 16 章：重新画地图——智能体沙箱工程是什么</a><a href="chapter-18.html">第 17 章：OpenSandbox——把环境管理与执行能力接起来</a><a href="chapter-19.html">第 18 章：SPACE——环境、操作与连接各有一条生命线</a><a href="chapter-20.html">第 19 章：CubeSandbox——从集群入口走到 microVM</a><a href="chapter-21.html">第 20 章：Anthropic sandbox-runtime——给本地命令加边界</a><a href="chapter-22.html">第 21 章：把同一个任务放进四项工程</a><a href="chapter-23.html">第 22 章：从读仓库到读论文</a><a href="chapter-24.html">第 23 章：扩展工程地图——平台、任务系统与维护状态</a><a href="chapter-25.html">第 24 章：底层工程导读——墙壁、门禁与接线方式</a><a href="chapter-26.html">第 25 章：论文导读——启动速度从哪里来</a><a href="chapter-27.html">第 26 章：从 Agent 到评测——环境为何影响结果</a><a href="chapter-28.html">第 27 章：第二阶段学习路线与综合练习</a><a href="chapter-29.html">附录 A：答案与排错</a><a href="chapter-30.html">附录 B：入门术语表</a><a href="chapter-31.html">附录 C：资料来源与继续阅读</a><a href="chapter-32.html">附录 D：四项工程的源码阅读索引</a><a href="chapter-33.html">附录 E：扩展资料、核查范围与更正</a></nav><a class="download" href="Agent-Sandbox-3.0.epub" download>↓ 下载 EPUB 3.0</a></aside><main id="content" tabindex="-1"><div class="meta">第 4 / 34 节 · 面向零基础读者</div><article><h1 id="第-2-章一张图看懂工作过程">第 2 章：一张图看懂工作过程</h1>
+<h2 id="五个角色">五个角色</h2>
+<p>用户提出目标；模型给出行动建议；控制器检查并调度；沙箱里的进程运行代码；结果处理器检查输出后交给用户。实际产品可能把这些角色合在同一服务中，但理解时应把责任分开。</p>
+<p>下面的流程从上到下阅读：</p>
+<pre class="text"><code>用户目标
+   ↓
+模型提出工具调用
+   ↓
+控制器：校验参数、权限与预算
+   ↓
+沙箱：受限文件、网络、进程与资源
+   ↓
+结果处理：日志、产物检查、错误分类
+   ↓
+模型继续推理，或向用户提交结果</code></pre>
+<p>不要把模型输出直接当成可信的系统指令。假如模型建议运行一个命令，控制器仍需要决定：命令能在哪个环境里运行、能访问哪些文件、允许运行多久。</p>
+<h2 id="一个贯穿本书的案例">一个贯穿本书的案例</h2>
+<p>我们让一个“销售表格助手”读取三行演示数据，计算收入总额，写出 JSON 报告。它只需要输入目录的读取权、输出目录的写入权、少量 CPU 和内存。计算过程不需要网络。</p>
+<p>控制器可以先创建沙箱，把演示 CSV 放进去，再运行 Python。成功后只取出报告；失败时保存必要错误信息，最后删除环境。后面每项设计都可以回到这个例子检查：这项权限是否真是完成任务所需？</p>
+<h2 id="沙箱之外仍有工作">沙箱之外仍有工作</h2>
+<p>如果报告被自动发给客户，发信动作属于另一个权限边界。如果报告内容不准确，沙箱也不会自动纠正。因此“运行受限”“内容正确”“允许发布”是三个不同判断。</p>
+</article><footer><a href="chapter-02.html">← 上一章</a><a href="chapter-04.html">下一章 →</a></footer><p class="note">本书包含示例与资料导读；验证范围和来源见附录。</p></main></div></body></html>

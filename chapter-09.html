@@ -1,0 +1,84 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="零基础 Agent Sandbox 中文学习书：原理、工程、论文与实践。"><title>第 8 章：亲手运行一个受限任务 · Agent Sandbox</title><link rel="stylesheet" href="reader.css"><script src="reader.js" defer></script></head><body><a class="skip" href="#content">跳到正文</a><header><button id="menu" aria-label="切换章节目录" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><a class="brand" href="index.html">Agent Sandbox <small>从零开始 · 3.0</small></a><button id="theme" aria-label="切换深色模式">◐ 外观</button></header><div class="layout"><aside id="sidebar"><p class="eyebrow">中文学习书 · 27 章</p><label for="search">搜索全书</label><input id="search" type="search" placeholder="搜索概念、项目或问题" autocomplete="off"><div id="results" role="status" aria-live="polite"></div><nav aria-label="章节目录"><a href="index.html">Agent Sandbox：从零开始</a><a href="chapter-01.html">阅读路线：先理解，再动手</a><a href="chapter-02.html">第 1 章：智能体为什么需要沙箱</a><a href="chapter-03.html">第 2 章：一张图看懂工作过程</a><a href="chapter-04.html">第 3 章：先认识四种容易混淆的东西</a><a href="chapter-05.html">第 4 章：到底要限制什么</a><a href="chapter-06.html">第 5 章：提示注入与沙箱各管哪一部分</a><a href="chapter-07.html">第 6 章：认识几个代表项目</a><a href="chapter-08.html">第 7 章：准备第一个实验</a><a href="chapter-09.html" aria-current="page">第 8 章：亲手运行一个受限任务</a><a href="chapter-10.html">第 9 章：验证边界，而不只是看到成功</a><a href="chapter-11.html">第 10 章：沙箱的一生与状态管理</a><a href="chapter-12.html">第 11 章：输入、输出与依赖怎样管理</a><a href="chapter-13.html">第 12 章：日志、失败与成本</a><a href="chapter-14.html">第 13 章：一个可复述的系统设计</a><a href="chapter-15.html">第 14 章：怎样选择方案</a><a href="chapter-16.html">第 15 章：七天学习计划与自测</a><a href="chapter-17.html">第 16 章：重新画地图——智能体沙箱工程是什么</a><a href="chapter-18.html">第 17 章：OpenSandbox——把环境管理与执行能力接起来</a><a href="chapter-19.html">第 18 章：SPACE——环境、操作与连接各有一条生命线</a><a href="chapter-20.html">第 19 章：CubeSandbox——从集群入口走到 microVM</a><a href="chapter-21.html">第 20 章：Anthropic sandbox-runtime——给本地命令加边界</a><a href="chapter-22.html">第 21 章：把同一个任务放进四项工程</a><a href="chapter-23.html">第 22 章：从读仓库到读论文</a><a href="chapter-24.html">第 23 章：扩展工程地图——平台、任务系统与维护状态</a><a href="chapter-25.html">第 24 章：底层工程导读——墙壁、门禁与接线方式</a><a href="chapter-26.html">第 25 章：论文导读——启动速度从哪里来</a><a href="chapter-27.html">第 26 章：从 Agent 到评测——环境为何影响结果</a><a href="chapter-28.html">第 27 章：第二阶段学习路线与综合练习</a><a href="chapter-29.html">附录 A：答案与排错</a><a href="chapter-30.html">附录 B：入门术语表</a><a href="chapter-31.html">附录 C：资料来源与继续阅读</a><a href="chapter-32.html">附录 D：四项工程的源码阅读索引</a><a href="chapter-33.html">附录 E：扩展资料、核查范围与更正</a></nav><a class="download" href="Agent-Sandbox-3.0.epub" download>↓ 下载 EPUB 3.0</a></aside><main id="content" tabindex="-1"><div class="meta">第 10 / 34 节 · 面向零基础读者</div><article><h1 id="第-8-章亲手运行一个受限任务">第 8 章：亲手运行一个受限任务</h1>
+<h2 id="第一步准备数据和计算程序">第一步：准备数据和计算程序</h2>
+<p>用文本编辑器创建 input/sales.csv，内容如下：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode csv"><code class="sourceCode csv"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>item,amount</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>book,120</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>course,80</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>notebook,50</span></code></pre></div>
+<p>再创建 input/analyze.py：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> csv</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> decimal <span class="im">import</span> Decimal</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> Path(<span class="st">&#39;/input/sales.csv&#39;</span>).<span class="bu">open</span>(newline<span class="op">=</span><span class="st">&#39;&#39;</span>) <span class="im">as</span> f:</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> <span class="bu">list</span>(csv.DictReader(f))</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>total <span class="op">=</span> <span class="bu">sum</span>((Decimal(r[<span class="st">&#39;amount&#39;</span>]) <span class="cf">for</span> r <span class="kw">in</span> rows), Decimal(<span class="st">&#39;0&#39;</span>))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>report <span class="op">=</span> {<span class="st">&#39;rows&#39;</span>: <span class="bu">len</span>(rows), <span class="st">&#39;total&#39;</span>: <span class="bu">str</span>(total)}</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>Path(<span class="st">&#39;/output/report.json&#39;</span>).write_text(</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    json.dumps(report, ensure_ascii<span class="op">=</span><span class="va">False</span>), encoding<span class="op">=</span><span class="st">&#39;utf-8&#39;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&#39;Report saved.&#39;</span>)</span></code></pre></div>
+<p>Decimal 用来按十进制计算金额。示例只处理已知的小文件；真实系统还应检查文件大小、字段名、金额格式和异常数据，不能无界读取陌生文件。</p>
+<h2 id="第二步创建控制器">第二步：创建控制器</h2>
+<p>在实验目录创建 run_demo.py。下面的代码直接调用 Docker，不会安装 Python 依赖。它显式指定一个容器名，因此超时后能找到并停止同一个容器。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> subprocess</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> uuid</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>base <span class="op">=</span> Path(<span class="va">__file__</span>).resolve().parent</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> base <span class="op">/</span> <span class="st">&#39;output&#39;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>out.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>report <span class="op">=</span> out <span class="op">/</span> <span class="st">&#39;report.json&#39;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> report.exists():</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">SystemExit</span>(<span class="st">&#39;请先把旧 report.json 移走，再运行。&#39;</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>name <span class="op">=</span> <span class="st">&#39;sandbox-demo-&#39;</span> <span class="op">+</span> uuid.uuid4().<span class="bu">hex</span>[:<span class="dv">12</span>]</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>uid <span class="op">=</span> os.getuid()</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>gid <span class="op">=</span> os.getgid()</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>cmd <span class="op">=</span> [</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;docker&#39;</span>, <span class="st">&#39;run&#39;</span>, <span class="st">&#39;--rm&#39;</span>, <span class="st">&#39;--pull=never&#39;</span>, <span class="st">&#39;--name&#39;</span>, name,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;--network=none&#39;</span>, <span class="st">&#39;--read-only&#39;</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;--memory=128m&#39;</span>, <span class="st">&#39;--memory-swap=128m&#39;</span>, <span class="st">&#39;--cpus=0.5&#39;</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;--pids-limit=32&#39;</span>, <span class="st">&#39;--cap-drop=ALL&#39;</span>,</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;--security-opt=no-new-privileges:true&#39;</span>,</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;--user&#39;</span>, <span class="ss">f&#39;</span><span class="sc">{</span>uid<span class="sc">}</span><span class="ss">:</span><span class="sc">{</span>gid<span class="sc">}</span><span class="ss">&#39;</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;--tmpfs&#39;</span>, <span class="st">&#39;/tmp:rw,noexec,nosuid,size=16m,mode=1777&#39;</span>,</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;--mount&#39;</span>, <span class="ss">f&#39;type=bind,src=</span><span class="sc">{</span>base <span class="op">/</span> <span class="st">&quot;input&quot;</span><span class="sc">}</span><span class="ss">,dst=/input,readonly&#39;</span>,</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;--mount&#39;</span>, <span class="ss">f&#39;type=bind,src=</span><span class="sc">{</span>out<span class="sc">}</span><span class="ss">,dst=/output&#39;</span>,</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;python:3.12-slim&#39;</span>, <span class="st">&#39;python&#39;</span>, <span class="st">&#39;-B&#39;</span>, <span class="st">&#39;/input/analyze.py&#39;</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> subprocess.run(cmd, timeout<span class="op">=</span><span class="dv">30</span>, check<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> result.returncode <span class="op">!=</span> <span class="dv">0</span>:</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">SystemExit</span>(<span class="ss">f&#39;任务失败，退出码：</span><span class="sc">{</span>result<span class="sc">.</span>returncode<span class="sc">}</span><span class="ss">&#39;</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> report.is_symlink() <span class="kw">or</span> <span class="kw">not</span> report.is_file():</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">SystemExit</span>(<span class="st">&#39;没有找到普通报告文件&#39;</span>)</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> report.stat().st_size <span class="op">&gt;</span> <span class="dv">4096</span>:</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">SystemExit</span>(<span class="st">&#39;报告过大&#39;</span>)</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> json.loads(report.read_text(encoding<span class="op">=</span><span class="st">&#39;utf-8&#39;</span>))</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> data <span class="op">!=</span> {<span class="st">&#39;rows&#39;</span>: <span class="dv">3</span>, <span class="st">&#39;total&#39;</span>: <span class="st">&#39;250&#39;</span>}:</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">SystemExit</span>(<span class="ss">f&#39;报告与预期不符：</span><span class="sc">{</span>data<span class="sc">}</span><span class="ss">&#39;</span>)</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&#39;验证通过：3 笔数据，总额 250。&#39;</span>)</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> subprocess.TimeoutExpired:</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">SystemExit</span>(<span class="st">&#39;任务超过 30 秒，正在清理容器。&#39;</span>)</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="cf">finally</span>:</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    cleanup <span class="op">=</span> subprocess.run(</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>        [<span class="st">&#39;docker&#39;</span>, <span class="st">&#39;rm&#39;</span>, <span class="st">&#39;-f&#39;</span>, name],</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>        stdout<span class="op">=</span>subprocess.DEVNULL, stderr<span class="op">=</span>subprocess.PIPE,</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>        text<span class="op">=</span><span class="va">True</span>, timeout<span class="op">=</span><span class="dv">15</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> cleanup.returncode <span class="kw">and</span> <span class="st">&#39;No such container&#39;</span> <span class="kw">not</span> <span class="kw">in</span> cleanup.stderr:</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&#39;请检查容器是否已清理：&#39;</span>, name)</span></code></pre></div>
+<p>在普通 Linux 环境中，使用当前用户的 UID/GID 有助于保证绑定目录可写。Docker Desktop 会处理宿主机文件共享，但企业策略、SELinux、rootless 模式和用户映射可能影响访问；报错时先查看具体原因，不要直接取消所有权限限制。包含逗号的目录路径会影响 –mount 参数解析，本实验请使用简单路径。</p>
+<h2 id="第三步运行并观察">第三步：运行并观察</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> run_demo.py</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> output/report.json</span></code></pre></div>
+<p>预期先看到 Report saved.，再看到验证通过，报告包含 rows 为 3、total 为字符串 250。JSON 键顺序不重要。你已经完成一次“控制器提交任务—受限环境执行—控制器校验产物”的流程。</p>
+<p>这里的绑定输出目录会真实修改宿主机的实验目录。只给一个空的专用 output 目录，是为了让这些写入有明确范围。不要给已有的重要文档目录作为输出。</p>
+<h2 id="每个限制做了什么">每个限制做了什么</h2>
+<p>–network=none 关闭容器的常规外部网络连接；–read-only 让容器根文件系统只读；输入挂载的 readonly 保护输入目录免遭容器修改。输出挂载允许程序写报告。</p>
+<p>–memory 与 –memory-swap 在支持的 Linux 配置中限制内存和交换使用；实际支持以 Docker 和内核为准。–cpus 限制 CPU 配额，–pids-limit 限制进程数量。Python 控制器的 timeout 给 Docker 客户端设置等待上限，并在 finally 中显式清理容器。[3]</p>
+<p>这些限制没有给宿主机 output 目录设置硬磁盘配额，也没有实现多租户隔离、恶意产物检查或全局费用限制。它是理解原理的教学起点。</p>
+</article><footer><a href="chapter-08.html">← 上一章</a><a href="chapter-10.html">下一章 →</a></footer><p class="note">本书包含示例与资料导读；验证范围和来源见附录。</p></main></div></body></html>

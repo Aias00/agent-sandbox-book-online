@@ -1,0 +1,12 @@
+const $=s=>document.querySelector(s);
+const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
+const dark=store.get('theme');if(dark==='dark'||(!dark&&matchMedia('(prefers-color-scheme: dark)').matches))document.body.classList.add('dark');
+$('#theme').onclick=()=>{document.body.classList.toggle('dark');store.set('theme',document.body.classList.contains('dark')?'dark':'light')};
+const close=()=>{$('#sidebar').classList.remove('open');$('#menu').setAttribute('aria-expanded','false')};
+$('#menu').onclick=()=>{const open=$('#sidebar').classList.toggle('open');$('#menu').setAttribute('aria-expanded',String(open))};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+let indexPromise;
+$('#search').addEventListener('input',async e=>{const q=e.target.value.trim().toLocaleLowerCase();const box=$('#results');box.replaceChildren();if(!q)return;
+try{indexPromise??=fetch('search-index.json').then(r=>{if(!r.ok)throw Error();return r.json()}).catch(e=>{indexPromise=null;throw e});const data=await indexPromise;if($('#search').value.trim().toLocaleLowerCase()!==q)return;
+const hits=data.filter(c=>(c.title+' '+c.text).toLocaleLowerCase().includes(q));const summary=document.createElement('p');summary.textContent=`找到 ${hits.length} 节`;box.append(summary);
+for(const c of hits){const a=document.createElement('a');a.href=c.url;a.textContent=c.title;const small=document.createElement('small');const i=c.text.toLocaleLowerCase().indexOf(q);small.textContent=c.text.slice(Math.max(0,i-25),Math.max(0,i-25)+95).replace(/\s+/g,' ')+'…';a.append(small);box.append(a)}}catch{box.textContent='搜索暂时无法加载，请使用章节目录。'}});

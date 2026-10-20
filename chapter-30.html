@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="零基础 Agent Sandbox 中文学习书：原理、工程、论文与实践。"><title>附录 B：入门术语表 · Agent Sandbox</title><link rel="stylesheet" href="reader.css"><script src="reader.js" defer></script></head><body><a class="skip" href="#content">跳到正文</a><header><button id="menu" aria-label="切换章节目录" aria-controls="sidebar" aria-expanded="false">☰ 目录</button><a class="brand" href="index.html">Agent Sandbox <small>从零开始 · 3.0</small></a><button id="theme" aria-label="切换深色模式">◐ 外观</button></header><div class="layout"><aside id="sidebar"><p class="eyebrow">中文学习书 · 27 章</p><label for="search">搜索全书</label><input id="search" type="search" placeholder="搜索概念、项目或问题" autocomplete="off"><div id="results" role="status" aria-live="polite"></div><nav aria-label="章节目录"><a href="index.html">Agent Sandbox：从零开始</a><a href="chapter-01.html">阅读路线：先理解，再动手</a><a href="chapter-02.html">第 1 章：智能体为什么需要沙箱</a><a href="chapter-03.html">第 2 章：一张图看懂工作过程</a><a href="chapter-04.html">第 3 章：先认识四种容易混淆的东西</a><a href="chapter-05.html">第 4 章：到底要限制什么</a><a href="chapter-06.html">第 5 章：提示注入与沙箱各管哪一部分</a><a href="chapter-07.html">第 6 章：认识几个代表项目</a><a href="chapter-08.html">第 7 章：准备第一个实验</a><a href="chapter-09.html">第 8 章：亲手运行一个受限任务</a><a href="chapter-10.html">第 9 章：验证边界，而不只是看到成功</a><a href="chapter-11.html">第 10 章：沙箱的一生与状态管理</a><a href="chapter-12.html">第 11 章：输入、输出与依赖怎样管理</a><a href="chapter-13.html">第 12 章：日志、失败与成本</a><a href="chapter-14.html">第 13 章：一个可复述的系统设计</a><a href="chapter-15.html">第 14 章：怎样选择方案</a><a href="chapter-16.html">第 15 章：七天学习计划与自测</a><a href="chapter-17.html">第 16 章：重新画地图——智能体沙箱工程是什么</a><a href="chapter-18.html">第 17 章：OpenSandbox——把环境管理与执行能力接起来</a><a href="chapter-19.html">第 18 章：SPACE——环境、操作与连接各有一条生命线</a><a href="chapter-20.html">第 19 章：CubeSandbox——从集群入口走到 microVM</a><a href="chapter-21.html">第 20 章：Anthropic sandbox-runtime——给本地命令加边界</a><a href="chapter-22.html">第 21 章：把同一个任务放进四项工程</a><a href="chapter-23.html">第 22 章：从读仓库到读论文</a><a href="chapter-24.html">第 23 章：扩展工程地图——平台、任务系统与维护状态</a><a href="chapter-25.html">第 24 章：底层工程导读——墙壁、门禁与接线方式</a><a href="chapter-26.html">第 25 章：论文导读——启动速度从哪里来</a><a href="chapter-27.html">第 26 章：从 Agent 到评测——环境为何影响结果</a><a href="chapter-28.html">第 27 章：第二阶段学习路线与综合练习</a><a href="chapter-29.html">附录 A：答案与排错</a><a href="chapter-30.html" aria-current="page">附录 B：入门术语表</a><a href="chapter-31.html">附录 C：资料来源与继续阅读</a><a href="chapter-32.html">附录 D：四项工程的源码阅读索引</a><a href="chapter-33.html">附录 E：扩展资料、核查范围与更正</a></nav><a class="download" href="Agent-Sandbox-3.0.epub" download>↓ 下载 EPUB 3.0</a></aside><main id="content" tabindex="-1"><div class="meta">第 31 / 34 节 · 面向零基础读者</div><article><h1 id="附录-b入门术语表">附录 B：入门术语表</h1>
+<p>Agent（智能体）：围绕目标选择和调用工具的系统，通常包含模型与执行循环。</p>
+<p>Sandbox（沙箱）：为执行任务建立并实施资源和访问边界的环境。</p>
+<p>Host（宿主机）：承载容器或虚拟机的机器或其操作系统环境。</p>
+<p>Guest（客体）：虚拟机内部运行的系统。</p>
+<p>Image（镜像）：用来启动环境的文件系统与配置模板。</p>
+<p>Container（容器）：基于镜像创建并运行的隔离进程环境。</p>
+<p>Namespace（命名空间）：Linux 中让进程看到不同资源视图的机制。</p>
+<p>cgroups（控制组）：Linux 中管理和限制进程组资源的机制。</p>
+<p>Capability（能力）：Linux 将部分传统超级用户权限拆分后的权限单元。</p>
+<p>seccomp：根据系统调用规则限制进程可使用的内核接口的机制。</p>
+<p>Bind mount（绑定挂载）：把宿主机某个路径映射到容器里的指定路径。</p>
+<p>Rootless：让相关服务和容器以非 root 身份运行的方式，具体能力取决于实现。</p>
+<p>System call（系统调用）：程序向操作系统请求读文件、创建进程等服务的接口。</p>
+<p>MicroVM（微型虚拟机）：强调精简与效率的一类虚拟机设计。</p>
+<p>Egress（出口流量）：从环境向外部发出的网络通信。</p>
+<p>Artifact（产物）：任务生成并需要取出的文件或结构化结果。</p>
+<p>Prompt injection（提示注入）：通过输入或外部内容尝试改变模型行为、绕过既定指令的攻击方式。</p>
+<p>Threat model（威胁模型）：明确要保护什么、防谁、攻击面在哪里、接受哪些风险的分析。</p>
+<p>Least privilege（最小权限）：只授予完成当前任务所需的权限。</p>
+<p>TTL（存活时间）：资源从创建到过期允许存在的时长，具体到期行为需核对实现。</p>
+<p>Idempotency（幂等性）：同一操作重复执行时不会额外产生重复副作用的性质。</p>
+<h2 id="本版示例的验证范围">本版示例的验证范围</h2>
+<p>本版已检查所有 Python 示例的语法，并在临时目录中运行了计算程序，确认结果为 3 笔、总额 250。编写环境没有 Docker，因此书中的容器启动、权限拒绝和超时清理实验尚未在本机实测；它们给出了预期结果与读者核对步骤。请按第 9 章观察你的实际环境。</p>
+</article><footer><a href="chapter-29.html">← 上一章</a><a href="chapter-31.html">下一章 →</a></footer><p class="note">本书包含示例与资料导读；验证范围和来源见附录。</p></main></div></body></html>
